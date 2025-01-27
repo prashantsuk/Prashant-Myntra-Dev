@@ -1,4 +1,4 @@
-name: Build,Push,Analyze,scan, Deploy in K8s
+name: Build,Analyze,scan
 
 on:
   push:
