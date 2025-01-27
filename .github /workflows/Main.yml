@@ -1,0 +1,71 @@
+name: Build,Push,Analyze,scan, Deploy in K8s
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build,Analyze,scan
+    runs-on: [self-hosted]
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for better relevancy of analysis
+          
+      - uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'  # Specify the Node.js version you want (you can change this as needed)
+
+      - name: Install dependencies (npm)
+        run: npm install  # This installs the dependencies listed in package.json
+
+      - name: Trivy file scan
+        run: trivy fs . > trivyfs.txt
+
+      - name: Docker build and run
+        run: |
+          docker build -t tic-tac-toe .
+          docker tag tic-tac-toe prashant680844/tic-tac-toe:latest
+          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+          docker push prashant680844/tic-tac-toe:latest
+        env:
+          DOCKER_CLI: 1
+  
+      - name: Pull the Docker image
+        run: docker pull prashant680844/tic-tac-toe:latest
+
+      - name: Trivy image scan
+        run: trivy image prashant680844/tic-tac-toe:latest
+
+      - name: Run Docker container
+        run: docker run -d --name ticgame -p 3000:3000 prashant680844/tic-tac-toe:latest
+        
+      - name: Deploy to container
+        run: |
+          docker stop ticgame
+          docker rm ticgame 
+
+      - name: Update kubeconfig
+        run: aws eks --region ap-south-1 update-kubeconfig --name EKS_CLOUD
+
+      - name: Deploy to kubernetes
+        run: kubectl apply -f deployment-service.yml  
+    
+      - name: Send a Slack Notification
+        if: always()
+        uses: act10ns/slack@v1
+        with:
+          status: ${{ job.status }}
+          steps: ${{ toJson(steps) }}
+          channel: '#prashant-githubaction'
+        env:
+         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
