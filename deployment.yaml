@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: myntra
-        image: prashant680844/myntra:latest
+        image: sevenajay/myntra:latest
         ports:
         - containerPort: 3000   # Open the port numbe 3000
 
