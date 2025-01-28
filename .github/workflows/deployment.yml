@@ -33,21 +33,21 @@ jobs:
 
       - name: Docker build and run
         run: |
-          docker build -t tic-tac-toe .
-          docker tag tic-tac-toe prashant680844/tic-tac-toe:latest
+          docker build -t myntra .
+          docker tag tic-tac-toe prashant680844/myntra:latest
           docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-          docker push prashant680844/tic-tac-toe:latest
+          docker push prashant680844/myntra:latest
         env:
           DOCKER_CLI: 1
   
       - name: Pull the Docker image
-        run: docker pull prashant680844/tic-tac-toe:latest
+        run: docker pull prashant680844/myntra:latest
 
       - name: Trivy image scan
-        run: trivy image prashant680844/tic-tac-toe:latest
+        run: trivy image prashant680844/myntra:latest
 
       - name: Run Docker container
-        run: docker run -d --name ticgame -p 3000:3000 prashant680844/tic-tac-toe:latest
+        run: docker run -d --name ticgame -p 3000:3000 prashant680844/myntra:latest
         
       - name: Deploy to container
         run: |
