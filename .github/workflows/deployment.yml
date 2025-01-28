@@ -31,6 +31,11 @@ jobs:
       - name: Trivy file scan
         run: trivy fs . > trivyfs.txt
 
+      - name: OWASP FS SCAN
+        run: |
+          dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
+          dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+
       - name: Docker build and run
         run: |
           docker build -t myntra .
