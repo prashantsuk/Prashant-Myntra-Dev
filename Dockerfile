@@ -1,7 +1,7 @@
 # Use Node.js Alpine base image
 FROM node:alpine
 
-# Create and set the working directory inside the container
+# Create and set the working directory inside the container log 
 WORKDIR /app
 
 # Copy package.json and package-lock.json to the working directory
